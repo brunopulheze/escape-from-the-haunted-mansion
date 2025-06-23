@@ -1,1 +1,1 @@
-# escape-from-the-hauted-mansion
+# escape-from-the-haunted-mansion
