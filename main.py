@@ -383,8 +383,8 @@ def main(player):
     current_room = 'Foyer'
     
     # printing the welcome message
-    # welcome_message()
-    # print("-" * 40)
+    welcome_message()
+    print("-" * 40)
 
     # while loop to keep the game running or until the player decides to quit
     while is_game_running:
