@@ -42,6 +42,10 @@ class ImmovableObject(Object):
     # This method allows the object to be updated with a new description
     def update_description(self, new_description):
         self.description = new_description
+    
+    # This method allows the object to be updated with a new description
+    def update_piano(self):
+        self.plays_with = False
         
 # Initialize movable objects that can be picked up
 book = MovableObject("Book", "A draft on the book reads 'A Key Behind a Portrait.' and 'Do La Si 📃 🎶'.")
@@ -101,7 +105,7 @@ def welcome_message():
 Welcome to the Escape the Haunted Mansion game! 👻
 You wake up on a couch and find yourself in a strange house with no windows.
 You don’t remember how you got here, but a chilling sense of danger fills the air.
-You must escape the house, and quickly! 🏚️
+You must escape the house, and quickly!
 Navigate through rooms, collect items, and find your way out.
 You can type 'inventory' to check your items at any time.
 Good luck! 🎃
@@ -119,6 +123,7 @@ def check_movable_items(non_portable_item, portable_item, room, player):
         print(f"You found a {item.name}!")
         print("-" * 40)
         keep_item = input(f"Would you like to keep the {item.name}? (yes/no): ").strip().lower()
+        print("-" * 40)
         if keep_item == 'yes':
             # Check if the item is in the room's items and add it to the player's inventory while removing it from the room
             if item in rooms[room]['items']:
@@ -151,14 +156,19 @@ def check_main_gate(item):
         if getattr(item, 'opens_with', None):
             print(f"The {item.name} can only be opened with the {item.opens_with.name}. 🗝️")
             if player.inventory and any(inv_item.name == item.opens_with.name for inv_item in player.inventory):
-                print(f"You have the {item.opens_with.name}. You can open the {item.name}.")
+                print(f"You have the {item.opens_with.name}! You can open the {item.name}. 😄")
                 print("-" * 40)
                 user_input = input(f"Would you like to open the {item.name}? (yes/no): ").strip().lower()
+                print("-" * 40)
                 if user_input == 'yes':
                         print(f"You opened the {item.name}! ✨")
                         # Check if the item is the Main Gate and if the player has the Silver Key player wins
                         if item.name == 'Main Gate':
-                            print("You managed to escape from the haunted mansion! Congratulations! 🥳 🎉")
+                            print("""
+You managed to escape from the haunted mansion! 
+You won! 
+🥳 🎉
+""")
                             # Set the game running flag to False to end the game
                             is_game_running = False
                             return
@@ -167,9 +177,8 @@ def check_main_gate(item):
                     print("-" * 40)
             else:
                 print(f"""
-It seems to be the only way out, but it is locked!
-But I don't have the {item.opens_with.name}. 😥
-I wonder where I can find it!
+It seems to be the only way out, but it is locked! 😥
+I wonder where I can find the key to open it!
 """)
                 print("-" * 40)
     else:
@@ -179,28 +188,34 @@ I wonder where I can find it!
 
 # This function checks the piano in the Study
 def check_piano(piano):
-    user_input = input("Alright, that is an old piano! Should I try to play it? (yes/no): ").strip().lower()
-    print("-" * 40)
-    if user_input == 'yes':
-        played_notes = input(f"""
+    if not piano.plays_with == False:
+        user_input = input("Alright, that is an old piano! Should I try to play it? (yes/no): ").strip().lower()
+        print("-" * 40)
+        if user_input == 'yes':
+            played_notes = input(f"""
 I should play some random notes on the piano 🎹 (e.g., do, re, mi). 
 Perhaps I can find some music sheets in the Library? 
 Or should I check the inventory for some clue? Anyway, I'll play on! 🎵
 {'-' * 40}
 """).strip().lower()
-        print("-" * 40)
-        # Check if the played notes match the piano's plays_with attribute
-        if played_notes == piano.plays_with:
-            print(f"You played the notes '{piano.plays_with}' on the piano and it echoes loudly throughout the house 🎶 !")
-            print("💥 Bang! It sounds like the chandelier just fell down in the Dining Room! Go check it out!")
             print("-" * 40)
-            # Show the chandelier
-            chandelier.show()
+            # Check if the played notes match the piano's plays_with attribute
+            if played_notes == piano.plays_with:
+                print(f"You played the notes '{piano.plays_with}' on the piano and it echoes loudly throughout the house 🎶 !")
+                print("💥 Bang! It sounds like the chandelier just fell down in the Dining Room! Go check it out!")
+                print("-" * 40)
+                # Show the chandelier
+                chandelier.show()
+                # Update the piano's plays_with attribute to False
+                piano.update_piano()
+            else:
+                print("You play the piano, but it doesn't produce any sound.")
+                print("-" * 40)
         else:
-            print("You play the piano, but it doesn't produce any sound.")
+            print("You chose not to play the piano.")
             print("-" * 40)
     else:
-        print("You chose not to play the piano.")
+        print("The piano is silent now. It seems like it has been played enough for today.")
         print("-" * 40)
 
 # This function checks the chandelier in the Dining Room
@@ -215,6 +230,7 @@ Strange, but I can see a screwdriver suspended from the chandelier, but I can't 
         return None
     elif item.is_hidden == False:
         user_input = input(f"The chandelier lies shattered on the floor. Would you like to examine it? (yes/no): ").strip().lower()
+        print("-" * 40)
     return user_input
 
 # This function checks for items in the basement
@@ -231,7 +247,7 @@ Maybe I should look for a flashlight?
     elif house_portrait.is_hidden == False:
         print("""
 Now that I have the flashlight, I can see two portraits in the basement! 💡
-It seems that they can be unscrewed from the wall:
+It seems that they can be removed from the wall:
 """)
         print("-" * 40)
         for item in non_portable_items:
@@ -248,8 +264,11 @@ It seems that they can be unscrewed from the wall:
                 print("Invalid choice. Please try again.")
                 print("-" * 40)
                 return
-            if portrait_input.name == 'Portrait of a House' and any(item.name == house_portrait.opens_with.name for item in player.inventory):
-                print("Now that I have the screwdriver, I can unscrew the portrait. 🙏")
+            if portrait_input.name == 'Portrait of a House' and silver_key not in rooms[room]['items']:
+                print("The Silver Key has already been taken. Rush to the Main Gate!")
+                print("-" * 40)
+            elif portrait_input.name == 'Portrait of a House' and any(item.name == house_portrait.opens_with.name for item in player.inventory):
+                print("Now that I have the screwdriver, I can remove the portrait from the wall. 🙏")
                 print("I found a Silver Key behind the portrait 🗝️! I can use it to open the Main Gate. ✨")
                 print("-" * 40)
                 user_choice = input("Would you like to take the Silver Key? (yes/no): ").strip().lower()
@@ -259,6 +278,7 @@ It seems that they can be unscrewed from the wall:
                     # Add the Silver Key to the player's inventory and remove it from the room
                     new_item.pick_up(player)
                     print("Now I have the Silver Key. Better rush to the Main Gate! 😁")
+                    print("-" * 40)
                     print("You have added the Silver Key to your inventory.")
                     rooms[room]['items'].remove(new_item)
                     print("-" * 40)
@@ -266,9 +286,14 @@ It seems that they can be unscrewed from the wall:
                     print("You chose not to take the Silver Key. 🤯")
                     print("-" * 40)
             elif portrait_input.name == 'Portrait of Dracula' and house_portrait.opens_with in player.inventory:
-                print("Now that I have the screwdriver, I can unscrew the portrait.")
+                print("Now that I have the screwdriver, I can remove the portrait from the wall.")
                 print('-' * 40)
-                print("Oh no! 😱 The vampire behind the portrait is Dracula himself! He's got you! Game over 🧛🦇")
+                print("""
+Oh no! 😱 
+Dracula appears behind the portrait and attacks you!
+Game over
+🧛🦇
+""")
                 print("-" * 40)
                 # Set the game running flag to False to end the game
                 is_game_running = False
@@ -289,16 +314,17 @@ def check_immovable_items(non_portable_items, portable_items, room, player):
             check_main_gate(item)
 
         # Checks if the item is the piano
-        elif getattr(item, 'plays_with', None):
-                check_piano(item)
-        
+        elif room == 'Study' and item.name == 'Piano':
+            check_piano(item)
+
         elif item.name == 'Chandelier':
             user_input = check_chandelier(item)
             if user_input == 'yes':
             # If the immovable object stores an item, check if the player wants to take it
                 if item.has_item and not item.is_hidden:
                     check_movable_items(non_portable_items, portable_items, room, player)
-            else:
+                    
+            elif chandelier.is_hidden == False:
                 print(f"You chose not to examine the {item.name}.")
                 print("-" * 40)
                 
@@ -366,7 +392,7 @@ def main(player):
         describe_room(current_room)
         user_input = input(f"""
 Type 'explore' to check for items in this room.
-Type a room name to move to the next room.
+Type {' or '.join(rooms[current_room]['connections'])} to move to the next room.
 Type 'inventory' to check your inventory.
 Type 'quit' to exit the game.
 {'-' * 40}
