@@ -348,6 +348,7 @@ def check_immovable_items(non_portable_items, portable_items, room, player):
 
 # This function moves the player to a new room
 def move_to_room(new_room):
+    describe_room(new_room)
     return new_room
 
 # This function describes the current room and its connections
@@ -385,11 +386,12 @@ def main(player):
     # printing the welcome message
     welcome_message()
     print("-" * 40)
+    describe_room(current_room)
 
     # while loop to keep the game running or until the player decides to quit
     while is_game_running:
         # describe_room
-        describe_room(current_room)
+        # describe_room(current_room)
         user_input = input(f"""
 Type 'explore' to check for items in this room.
 Type {' or '.join(rooms[current_room]['connections'])} to move to the next room.
